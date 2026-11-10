@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { X, Sun, ShieldCheck } from 'lucide-react';
 import { TicketData } from '../types';
-import { VIDEO_QR_MATRIX } from '../data/videoQRMatrix';
+import { QRCodeDisplay } from './QRCodeDisplay';
 
 interface EnlargedQRModalProps {
   isOpen: boolean;
@@ -14,15 +14,7 @@ export const EnlargedQRModal: React.FC<EnlargedQRModalProps> = ({
   onClose,
   ticket,
 }) => {
-  const [scanPulse] = useState(true);
-
   if (!isOpen) return null;
-
-  const modalBoxSize = 268;
-  const borderThickness = 6;
-  const rectSize = modalBoxSize - borderThickness; // 262
-  const strokeRadius = 23;
-  const whiteCardSize = modalBoxSize - borderThickness * 2; // 256
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200">
@@ -51,228 +43,13 @@ export const EnlargedQRModal: React.FC<EnlargedQRModalProps> = ({
           {ticket.screenName} • {ticket.seatInfo}
         </p>
 
-        {/* Large QR Container with exact rotating dark-bluish-purple border matching video */}
-        <div className="my-5 relative inline-block">
-          {/* Ambient blurred glow */}
-          <div
-            className="absolute -inset-3 rounded-[32px] opacity-60 blur-lg pointer-events-none"
-            style={{
-              background:
-                'radial-gradient(circle at 50% 50%, rgba(85, 48, 235, 0.4) 0%, rgba(45, 41, 62, 0.2) 65%, transparent 100%)',
-            }}
+        {/* Large QR Container using exact rotating beam matching video */}
+        <div className="my-5 flex items-center justify-center">
+          <QRCodeDisplay
+            payload={ticket.qrPayload}
+            size={200}
+            showHoverTooltip={false}
           />
-
-          {/* Sharp Rotating Border Container */}
-          <div
-            className="relative flex items-center justify-center"
-            style={{ width: `${modalBoxSize}px`, height: `${modalBoxSize}px` }}
-          >
-            {/* SVG Perimeter Beam */}
-            <svg
-              className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-0"
-              viewBox={`0 0 ${modalBoxSize} ${modalBoxSize}`}
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <filter id="qrModalSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="4.5" result="blur" />
-                </filter>
-              </defs>
-
-              {/* Outer soft aura following the beam */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#5530eb"
-                strokeWidth={borderThickness + 6}
-                strokeLinecap="round"
-                pathLength="100"
-                strokeDasharray="44 56"
-                filter="url(#qrModalSoftGlow)"
-                opacity="0.45"
-                className="animate-qr-video-beam"
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from="0"
-                  to="-100"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-
-              {/* Base dark bluish-purple track */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#2d293e"
-                strokeWidth={borderThickness}
-              />
-
-              {/* Trailing fade of the beam */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#4823c0"
-                strokeWidth={borderThickness}
-                strokeLinecap="round"
-                pathLength="100"
-                strokeDasharray="44 56"
-                className="animate-qr-video-beam"
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from="0"
-                  to="-100"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-
-              {/* Primary vibrant electric violet-blue beam */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#5530eb"
-                strokeWidth={borderThickness}
-                strokeLinecap="round"
-                pathLength="100"
-                strokeDasharray="36 64"
-                className="animate-qr-video-beam"
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from="0"
-                  to="-100"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-
-              {/* Bright violet core highlight */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#784bf9"
-                strokeWidth={borderThickness - 1.8}
-                strokeLinecap="round"
-                pathLength="100"
-                strokeDasharray="24 76"
-                className="animate-qr-video-beam"
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from="0"
-                  to="-100"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-
-              {/* Lavender inner streak */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#c4b5fd"
-                strokeWidth={borderThickness - 3.2}
-                strokeLinecap="round"
-                pathLength="100"
-                strokeDasharray="12 88"
-                className="animate-qr-video-beam"
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from="0"
-                  to="-100"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-
-              {/* Leading white tip spark */}
-              <rect
-                x={borderThickness / 2}
-                y={borderThickness / 2}
-                width={rectSize}
-                height={rectSize}
-                rx={strokeRadius}
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth={1.6}
-                strokeLinecap="round"
-                pathLength="100"
-                strokeDasharray="4 96"
-                opacity="0.95"
-                className="animate-qr-video-beam"
-              >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  from="0"
-                  to="-100"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </rect>
-            </svg>
-
-            {/* Inner White Container */}
-            <div
-              className="bg-white p-4 rounded-[20px] relative overflow-hidden z-10 shadow-sm"
-              style={{ width: `${whiteCardSize}px`, height: `${whiteCardSize}px` }}
-            >
-              <svg
-                viewBox="0 0 21 21"
-                className="w-full h-full block"
-                shapeRendering="crispEdges"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="21" height="21" fill="#ffffff" />
-                {VIDEO_QR_MATRIX.map((row, r) =>
-                  row.map((val, c) =>
-                    val === 1 ? (
-                      <rect
-                        key={`${r}-${c}`}
-                        x={c}
-                        y={r}
-                        width="1"
-                        height="1"
-                        fill="#000000"
-                      />
-                    ) : null
-                  )
-                )}
-              </svg>
-
-              {/* Scanning line animation */}
-              {scanPulse && (
-                <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_12px_#6366f1] animate-[bounce_3s_infinite]" />
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Booking Code Display */}

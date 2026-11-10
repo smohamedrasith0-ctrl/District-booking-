@@ -75,20 +75,17 @@
   }
 }
 
-.animate-qr-conic {
-  animation: qrConicRotate 4.0s linear infinite;
-}
-
-@keyframes qrVideoBeam {
+@keyframes qrConicSweep {
   0% {
-    stroke-dashoffset: 0;
+    transform: rotate(0deg);
   }
   100% {
-    stroke-dashoffset: -100;
+    transform: rotate(360deg);
   }
 }
 
-.animate-qr-video-beam {
-  animation: qrVideoBeam 4.0s linear infinite;
+.animate-qr-conic-sweep {
+  animation: qrConicSweep 2.92s linear infinite;
+  will-change: transform;
 }
 

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, Sliders, RotateCcw, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Sliders, Check } from 'lucide-react';
 import { TicketData } from '../types';
-import { DEFAULT_TICKET, ALTERNATIVE_TICKETS } from '../data/sampleTickets';
+import { ALTERNATIVE_TICKETS } from '../data/sampleTickets';
 
 interface CustomizerModalProps {
   isOpen: boolean;
@@ -20,24 +20,34 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<TicketData>({ ...currentTicket });
 
+  // Sync form state whenever modal is opened or currentTicket updates
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ ...currentTicket });
+    }
+  }, [isOpen, currentTicket]);
+
   if (!isOpen) return null;
 
   const handleSelectPreset = (preset: TicketData) => {
     setFormData({ ...preset });
     onUpdateTicket(preset);
-    onToast(`Switched to "${preset.movieTitle}"`);
-  };
-
-  const handleResetToScreenshot = () => {
-    setFormData({ ...DEFAULT_TICKET });
-    onUpdateTicket(DEFAULT_TICKET);
-    onToast('Reset to exact screenshot ticket!');
+    onToast(`Switched to "${preset.movieTitle}" and saved permanently`);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateTicket(formData);
-    onToast('Ticket updated successfully!');
+    const updatedBreakdown = { ...(formData.billBreakdown || currentTicket.billBreakdown) };
+    if (formData.totalBill !== currentTicket.totalBill) {
+      const taxesAndFees = (updatedBreakdown.convenienceFee || 16.74) + (updatedBreakdown.cgst || 1.51) + (updatedBreakdown.sgst || 1.50);
+      updatedBreakdown.baseTicketPrice = Math.max(0, Number((formData.totalBill - taxesAndFees).toFixed(2)));
+    }
+    const finalTicket = {
+      ...formData,
+      billBreakdown: updatedBreakdown,
+    };
+    onUpdateTicket(finalTicket);
+    onToast('Ticket details permanently saved!');
     onClose();
   };
 
@@ -84,15 +94,6 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
               </button>
             ))}
           </div>
-
-          <button
-            type="button"
-            onClick={handleResetToScreenshot}
-            className="mt-2.5 w-full py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset to Exact Screenshot (OM • ₹89.75)
-          </button>
         </div>
 
         {/* Custom Edit Form */}
@@ -213,7 +214,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
               className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold flex items-center justify-center gap-1.5 transition"
             >
               <Check className="w-4 h-4" />
-              Apply Changes
+              Save Permanently
             </button>
           </div>
         </form>

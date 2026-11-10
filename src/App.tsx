@@ -22,8 +22,49 @@ import {
   MoreVertical,
 } from 'lucide-react';
 
+const LOCAL_STORAGE_KEY = 'district_ticket_custom_data_v1';
+
 export default function App() {
-  const [ticket, setTicket] = useState<TicketData>(DEFAULT_TICKET);
+  const [ticket, setTicket] = useState<TicketData>(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed.movieTitle) {
+          return {
+            ...DEFAULT_TICKET,
+            ...parsed,
+            billBreakdown: {
+              ...DEFAULT_TICKET.billBreakdown,
+              ...(parsed.billBreakdown || {}),
+            },
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load saved ticket from localStorage', e);
+    }
+    return DEFAULT_TICKET;
+  });
+
+  // Permanently save to localStorage whenever ticket changes
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(ticket));
+    } catch (e) {
+      console.error('Failed to persist ticket data to localStorage', e);
+    }
+  }, [ticket]);
+
+  const handleUpdateTicket = (newTicket: TicketData) => {
+    setTicket(newTicket);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newTicket));
+    } catch (e) {
+      console.error('Failed to persist ticket data to localStorage', e);
+    }
+  };
+
   const [isPhoneFrame, setIsPhoneFrame] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -270,7 +311,7 @@ export default function App() {
         isOpen={isCustomizerOpen}
         onClose={() => setIsCustomizerOpen(false)}
         currentTicket={ticket}
-        onUpdateTicket={setTicket}
+        onUpdateTicket={handleUpdateTicket}
         onToast={showToast}
       />
     </div>

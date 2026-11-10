@@ -1,0 +1,6 @@
+{
+  "name": "District Movie Ticket Booking",
+  "description": "District movie ticket booking confirmation interface featuring scannable QR pass, order details, cinema directions, and support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

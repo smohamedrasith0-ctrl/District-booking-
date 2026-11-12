@@ -31,8 +31,40 @@ export const DEFAULT_TICKET: TicketData = {
   },
 };
 
+export const RAMAYANA_TICKET: TicketData = {
+  movieTitle: 'Ramayana',
+  language: 'Tamil',
+  format: '3D',
+  certification: 'U',
+  qrPayload: 'DISTRICT-TKT:RM92817K:503178/10000081674942:WOODLANDS-ROYAPETTAH:RAMAYANA:SYMPHONY:Y5',
+  dateTimeText: '13 Nov, Fri from 06:30 to 10:05 PM (approx)',
+  startDate: '2026-11-13T18:30:00+05:30',
+  endDate: '2026-11-13T22:05:00+05:30',
+  screenName: 'SYMPHONY',
+  ticketCount: 1,
+  seatInfo: '1 ticket, SECOND CLASS-Y5',
+  theaterName: 'Woodlands Complex',
+  theaterAddress: 'Woodlands Complex, Royapettah, Chennai',
+  mapsUrl: 'https://maps.google.com/?q=Woodlands+Complex+Royapettah+Chennai',
+  bookingCode: 'RM92817K',
+  bookingId: '503178/10000081674942',
+  orderId: '10000081674942',
+  totalBill: 89.75,
+  currency: '₹',
+  billBreakdown: {
+    baseTicketPrice: 54.35,
+    convenienceFee: 30.00,
+    cgst: 2.70,
+    sgst: 2.70,
+    discount: 0,
+    paymentMethod: 'Google Pay UPI (smohamedrasith0@okaxis)',
+    transactionId: 'UPI/427819284712/ZOMATODISTRICT',
+  },
+};
+
 export const ALTERNATIVE_TICKETS: TicketData[] = [
   DEFAULT_TICKET,
+  RAMAYANA_TICKET,
   {
     movieTitle: 'Coolie',
     language: 'Tamil',

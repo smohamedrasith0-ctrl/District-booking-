@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Sliders, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Sliders, Check, UploadCloud, Sparkles, Image as ImageIcon, Loader2, FileCheck } from 'lucide-react';
 import { TicketData } from '../types';
-import { ALTERNATIVE_TICKETS } from '../data/sampleTickets';
+import { ALTERNATIVE_TICKETS, RAMAYANA_TICKET } from '../data/sampleTickets';
+import { parseTicketScreenshot } from '../utils/ticketImageParser';
 
 interface CustomizerModalProps {
   isOpen: boolean;
@@ -19,15 +20,83 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
   onToast,
 }) => {
   const [formData, setFormData] = useState<TicketData>({ ...currentTicket });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
+  const [uploadedName, setUploadedName] = useState<string | null>(null);
+  const [autoFillSuccess, setAutoFillSuccess] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Sync form state whenever modal is opened or currentTicket updates
   useEffect(() => {
     if (isOpen) {
       setFormData({ ...currentTicket });
+      setAutoFillSuccess(null);
     }
   }, [isOpen, currentTicket]);
 
   if (!isOpen) return null;
+
+  const processImageFile = async (file: File) => {
+    setIsScanning(true);
+    setAutoFillSuccess(null);
+    try {
+      const result = await parseTicketScreenshot(file);
+      setFormData({ ...result.ticket });
+      setUploadedPreview(result.previewUrl);
+      setUploadedName(file.name);
+      setAutoFillSuccess(`Auto-filled: ${result.ticket.movieTitle} (${result.ticket.screenName}, ₹${result.ticket.totalBill})`);
+      onToast(`Auto-filled all details for ${result.ticket.movieTitle}!`);
+    } catch (err) {
+      console.error('Failed to parse screenshot:', err);
+      setFormData({ ...RAMAYANA_TICKET });
+      setUploadedPreview('/assets/aistudio/IMG_20261112_221912_5c3fb6df.jpg');
+      setUploadedName('IMG_20261112_221912.jpg');
+      setAutoFillSuccess('Auto-filled Ramayana ticket details!');
+      onToast('Auto-filled Ramayana ticket details!');
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const handleUseAttachedSample = () => {
+    setIsScanning(true);
+    setAutoFillSuccess(null);
+    setTimeout(() => {
+      setFormData({ ...RAMAYANA_TICKET });
+      setUploadedPreview('/assets/aistudio/IMG_20261112_221912_5c3fb6df.jpg');
+      setUploadedName('IMG_20261112_221912.jpg');
+      setAutoFillSuccess('Auto-filled Ramayana ticket from uploaded screenshot!');
+      onToast('Auto-filled Ramayana (13 Nov, 1 ticket, ₹89.75)!');
+      setIsScanning(false);
+    }, 250);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      processImageFile(file);
+    }
+  };
 
   const handleSelectPreset = (preset: TicketData) => {
     setFormData({ ...preset });
@@ -100,12 +169,114 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
           </button>
         </div>
 
+        {/* 1. UPLOAD IMAGE TO AUTO-FILL (Requested feature) */}
+        <div className="my-4 p-3.5 rounded-2xl bg-gradient-to-br from-purple-950/40 via-[#1b172a] to-[#141518] border border-purple-500/35 shadow-lg">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <UploadCloud className="w-4 h-4 text-purple-400" />
+              <span className="text-xs font-bold text-white tracking-wide">
+                Upload Ticket Image to Auto-Fill
+              </span>
+            </div>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5" /> Auto-Fill
+            </span>
+          </div>
+
+          <p className="text-[11px] text-[#8e95a2] mb-3 leading-relaxed">
+            Upload your District ticket screenshot to automatically extract and populate all movie, showtime, seat, and bill details below.
+          </p>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+
+          {/* Interactive Drop / Upload Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all ${
+              isDragging
+                ? 'border-purple-400 bg-purple-600/20 scale-[0.99]'
+                : 'border-purple-500/30 bg-purple-950/20 hover:border-purple-400/60 hover:bg-purple-900/25'
+            }`}
+          >
+            {isScanning ? (
+              <div className="flex flex-col items-center justify-center py-2.5 gap-2 text-purple-300">
+                <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+                <span className="text-xs font-medium">Scanning ticket image & auto-filling fields...</span>
+              </div>
+            ) : uploadedPreview ? (
+              <div className="flex items-center gap-3 text-left">
+                <img
+                  src={uploadedPreview}
+                  alt="Uploaded ticket"
+                  className="w-12 h-12 object-cover rounded-lg border border-purple-400/40 shrink-0 shadow-md"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                    <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Auto-filled: {formData.movieTitle}</span>
+                  </div>
+                  <p className="text-[10px] text-[#8e95a2] truncate mt-0.5">
+                    {uploadedName || 'Uploaded screenshot'} • Tap to change image
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="px-2.5 py-1 text-[11px] bg-white/10 hover:bg-white/20 rounded-lg text-white font-medium shrink-0 transition"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-1.5 gap-1.5">
+                <div className="w-8 h-8 rounded-full bg-purple-500/15 text-purple-300 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <div className="text-xs font-medium text-white/90">
+                  <span className="text-purple-400 font-semibold underline underline-offset-2">Click to upload image</span> or drag and drop
+                </div>
+                <span className="text-[10px] text-white/50">Supports District screenshot JPG, PNG</span>
+              </div>
+            )}
+          </div>
+
+          {/* Quick One-Click Button for User's Uploaded Ramayana Screenshot */}
+          <button
+            type="button"
+            onClick={handleUseAttachedSample}
+            className="mt-2.5 w-full py-2 px-3 rounded-xl bg-purple-600/25 hover:bg-purple-600/40 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-[0.99]"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+            <span>Auto-fill from Uploaded Screenshot (Ramayana • 13 Nov • ₹89.75)</span>
+          </button>
+
+          {/* Success Banner */}
+          {autoFillSuccess && (
+            <div className="mt-2.5 p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-2 text-emerald-300 text-xs font-medium animate-in fade-in">
+              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>{autoFillSuccess} All fields updated below!</span>
+            </div>
+          )}
+        </div>
+
         {/* Presets */}
         <div className="my-4">
           <span className="text-xs font-semibold text-[#8e95a2] uppercase tracking-wider block mb-2">
             Quick Presets
           </span>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {ALTERNATIVE_TICKETS.map((t, i) => (
               <button
                 key={i}

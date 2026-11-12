@@ -34,6 +34,7 @@ export default function App() {
           return {
             ...DEFAULT_TICKET,
             ...parsed,
+            ticketCount: Math.max(1, Number(parsed.ticketCount) || 1),
             billBreakdown: {
               ...DEFAULT_TICKET.billBreakdown,
               ...(parsed.billBreakdown || {}),
@@ -57,9 +58,13 @@ export default function App() {
   }, [ticket]);
 
   const handleUpdateTicket = (newTicket: TicketData) => {
-    setTicket(newTicket);
+    const sanitized: TicketData = {
+      ...newTicket,
+      ticketCount: Math.max(1, Number(newTicket.ticketCount) || 1),
+    };
+    setTicket(sanitized);
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newTicket));
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sanitized));
     } catch (e) {
       console.error('Failed to persist ticket data to localStorage', e);
     }

@@ -35,15 +35,43 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
     onToast(`Switched to "${preset.movieTitle}" and saved permanently`);
   };
 
+  const handleTicketCountChange = (val: number | string) => {
+    const count = Math.max(1, typeof val === 'number' ? val : parseInt(val, 10) || 1);
+    let updatedSeatInfo = formData.seatInfo || '';
+    if (/^\d+\s*tickets?,/i.test(updatedSeatInfo)) {
+      updatedSeatInfo = updatedSeatInfo.replace(
+        /^\d+\s*tickets?,/i,
+        `${count} ${count === 1 ? 'ticket' : 'tickets'},`
+      );
+    }
+    setFormData((prev) => ({
+      ...prev,
+      ticketCount: count,
+      seatInfo: updatedSeatInfo,
+    }));
+  };
+
+  const handleSeatInfoChange = (val: string) => {
+    const match = val.match(/^(\d+)\s*tickets?/i);
+    const count = match ? Math.max(1, parseInt(match[1], 10) || 1) : formData.ticketCount;
+    setFormData((prev) => ({
+      ...prev,
+      seatInfo: val,
+      ticketCount: count,
+    }));
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    const count = Math.max(1, Number(formData.ticketCount) || 1);
     const updatedBreakdown = { ...(formData.billBreakdown || currentTicket.billBreakdown) };
     if (formData.totalBill !== currentTicket.totalBill) {
       const taxesAndFees = (updatedBreakdown.convenienceFee || 16.74) + (updatedBreakdown.cgst || 1.51) + (updatedBreakdown.sgst || 1.50);
       updatedBreakdown.baseTicketPrice = Math.max(0, Number((formData.totalBill - taxesAndFees).toFixed(2)));
     }
-    const finalTicket = {
+    const finalTicket: TicketData = {
       ...formData,
+      ticketCount: count,
       billBreakdown: updatedBreakdown,
     };
     onUpdateTicket(finalTicket);
@@ -148,8 +176,19 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
+          <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-4">
+              <label className="block text-[#8e95a2] mb-1 font-medium">Ticket Count</label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={formData.ticketCount ?? 1}
+                onChange={(e) => handleTicketCountChange(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-purple-500"
+              />
+            </div>
+            <div className="col-span-8">
               <label className="block text-[#8e95a2] mb-1 font-medium">Screen Name</label>
               <input
                 type="text"
@@ -158,15 +197,17 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500"
               />
             </div>
-            <div>
-              <label className="block text-[#8e95a2] mb-1 font-medium">Seat Details</label>
-              <input
-                type="text"
-                value={formData.seatInfo}
-                onChange={(e) => setFormData({ ...formData, seatInfo: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500"
-              />
-            </div>
+          </div>
+
+          <div>
+            <label className="block text-[#8e95a2] mb-1 font-medium">Seat Details</label>
+            <input
+              type="text"
+              value={formData.seatInfo}
+              onChange={(e) => handleSeatInfoChange(e.target.value)}
+              placeholder="e.g. 1 ticket, SECOND CLASS-Y6"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500"
+            />
           </div>
 
           <div>

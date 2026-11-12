@@ -12,6 +12,31 @@ interface ExpandingTicketCardProps {
   onToast: (msg: string) => void;
 }
 
+const formatCompactHeader = (ticketCount: number, dateTimeText: string) => {
+  const count = Math.max(1, Number(ticketCount) || 1);
+  const ticketLabel = `${count} ${count === 1 ? 'ticket' : 'tickets'}`;
+
+  // Try to match date (e.g. "04 Oct" or "12 Nov")
+  const dateMatch = dateTimeText.match(/(\d{1,2}\s+[A-Za-z]{3,4})/);
+  const dateStr = dateMatch ? dateMatch[1] : '04 Oct';
+
+  // Try to match start time (e.g. "from 12:00" or "06:30 PM")
+  const timeMatch =
+    dateTimeText.match(/from\s*(\d{1,2}:\d{2})/i) ||
+    dateTimeText.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+
+  let timeStr = '12:00 PM';
+  if (timeMatch) {
+    timeStr = timeMatch[1].trim();
+    if (!/AM|PM/i.test(timeStr)) {
+      const ampm = dateTimeText.match(/(AM|PM)/i);
+      timeStr = `${timeStr} ${ampm ? ampm[1].toUpperCase() : 'PM'}`;
+    }
+  }
+
+  return `${ticketLabel} • ${dateStr}, ${timeStr}`;
+};
+
 export const ExpandingTicketCard: React.FC<ExpandingTicketCardProps> = ({
   ticket,
   isExpanded,
@@ -64,7 +89,7 @@ export const ExpandingTicketCard: React.FC<ExpandingTicketCardProps> = ({
           <div className="flex-1 min-w-0 text-left">
             <div className="flex items-center justify-between">
               <span className="text-[12px] sm:text-[12.5px] text-[#9ca3af] font-normal tracking-wide">
-                {ticket.ticketCount} ticket • {ticket.dateTimeText.split('from')[0]?.trim() || '04 Oct'}, {ticket.dateTimeText.includes('12:00') ? '12:00 PM' : 'Showtime'}
+                {formatCompactHeader(ticket.ticketCount, ticket.dateTimeText)}
               </span>
               <Maximize2 className="w-3.5 h-3.5 text-[#8e95a2] group-hover:text-white transition-colors shrink-0 ml-1.5" />
             </div>

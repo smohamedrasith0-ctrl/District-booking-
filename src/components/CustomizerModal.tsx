@@ -381,14 +381,42 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
             />
           </div>
 
-          <div>
-            <label className="block text-[#8e95a2] mb-1 font-medium">Cinema Address</label>
-            <input
-              type="text"
-              value={formData.theaterAddress}
-              onChange={(e) => setFormData({ ...formData, theaterAddress: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500"
-            />
+          <div className="grid grid-cols-12 gap-2">
+            <div className="col-span-5">
+              <label className="block text-[#8e95a2] mb-1 font-medium">Cinema Name</label>
+              <input
+                type="text"
+                value={formData.theaterName}
+                onChange={(e) => {
+                  const newName = e.target.value;
+                  setFormData({
+                    ...formData,
+                    theaterName: newName,
+                  });
+                }}
+                placeholder="e.g. Woodlands Complex"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500 font-medium"
+              />
+            </div>
+            <div className="col-span-7">
+              <label className="block text-[#8e95a2] mb-1 font-medium">Cinema Address</label>
+              <input
+                type="text"
+                value={formData.theaterAddress}
+                onChange={(e) => {
+                  const newAddr = e.target.value;
+                  const firstPart = newAddr.split(',')[0]?.trim();
+                  setFormData({
+                    ...formData,
+                    theaterAddress: newAddr,
+                    theaterName: firstPart || formData.theaterName,
+                    mapsUrl: `https://maps.google.com/?q=${encodeURIComponent(newAddr)}`,
+                  });
+                }}
+                placeholder="e.g. Woodlands Complex, Royapettah, Chennai"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500 font-medium"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

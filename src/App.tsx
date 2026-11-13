@@ -111,27 +111,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070908] text-white flex flex-col items-center justify-start relative select-none antialiased">
-      {/* Top Header with very tiny settings icon */}
-      <header className="w-full max-w-[412px] px-4 py-1.5 flex items-center justify-end z-40">
-        <button
-          onClick={() => setIsCustomizerOpen(true)}
-          className="w-5 h-5 rounded-full bg-white/[0.04] hover:bg-white/10 active:scale-90 border border-white/[0.08] text-white/50 hover:text-white/90 flex items-center justify-center transition-all shadow-sm backdrop-blur-md"
-          title="Customize ticket"
-          aria-label="Customize ticket"
-        >
-          <Settings className="w-2.5 h-2.5" />
-        </button>
-      </header>
-
+    <div className="min-h-[100dvh] bg-[#070908] text-white flex flex-col items-center justify-start relative select-none antialiased">
       {/* Main Container Area */}
-      <main className="w-full flex-1 flex flex-col items-center justify-start p-0 sm:py-4 sm:px-4 overflow-hidden">
+      <main className="w-full flex-1 flex flex-col items-center justify-center p-0 sm:py-3 sm:px-4 overflow-hidden">
         {/* Device Wrapper */}
         <div
           className={`w-full transition-all duration-300 relative flex flex-col ${
             isPhoneFrame
-              ? 'max-w-[412px] h-[min(880px,calc(100vh-64px))] sm:rounded-[44px] sm:border-[10px] sm:border-[#222428] sm:shadow-[0_25px_80px_rgba(0,0,0,0.85)] sm:ring-1 sm:ring-white/10 overflow-hidden'
-              : 'max-w-md h-[calc(100vh-50px)] overflow-hidden'
+              ? 'max-w-full sm:max-w-[412px] h-[100dvh] sm:h-[min(880px,calc(100vh-24px))] sm:rounded-[44px] sm:border-[10px] sm:border-[#222428] sm:shadow-[0_25px_80px_rgba(0,0,0,0.85)] sm:ring-1 sm:ring-white/10 overflow-hidden'
+              : 'max-w-md h-[100dvh] overflow-hidden'
           }`}
         >
           {/* Background Ambient Dark Green Radial Glow matching screenshot and video */}
@@ -264,6 +252,18 @@ export default function App() {
                 }}
               />
             </div>
+
+            {/* Tiny Customize Icon positioned at the bottom of the front page */}
+            {!isExpanded && (
+              <button
+                onClick={() => setIsCustomizerOpen(true)}
+                className="absolute bottom-4 right-5 z-30 w-5 h-5 rounded-full bg-white/[0.04] hover:bg-white/10 active:scale-90 border border-white/[0.08] text-white/45 hover:text-white/90 flex items-center justify-center transition-all shadow-sm backdrop-blur-md"
+                title="Customize ticket"
+                aria-label="Customize ticket"
+              >
+                <Settings className="w-2.5 h-2.5" />
+              </button>
+            )}
           </div>
         </div>
       </main>

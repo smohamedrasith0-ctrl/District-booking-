@@ -52,6 +52,8 @@ export async function parseTicketScreenshot(
         const fee = typeof t.convenienceFee === 'number' ? t.convenienceFee : 30.00;
         const cgst = typeof t.cgst === 'number' ? t.cgst : 2.70;
         const sgst = typeof t.sgst === 'number' ? t.sgst : 2.70;
+        const extractedAddress = (t.theaterAddress || 'Woodlands Complex, Royapettah, Chennai').trim();
+        const extractedName = (t.theaterName || extractedAddress.split(',')[0] || 'Woodlands Complex').trim();
 
         const ticket: TicketData = {
           movieTitle: t.movieTitle || 'Ramayana',
@@ -65,9 +67,9 @@ export async function parseTicketScreenshot(
           screenName: t.screenName || 'SYMPHONY',
           ticketCount: Math.max(1, Number(t.ticketCount) || 1),
           seatInfo: t.seatInfo || '1 ticket, SECOND CLASS-Y5',
-          theaterName: t.theaterName || 'Woodlands Complex',
-          theaterAddress: t.theaterAddress || 'Woodlands Complex, Royapettah, Chennai',
-          mapsUrl: 'https://maps.google.com/?q=Woodlands+Complex+Royapettah+Chennai',
+          theaterName: extractedName,
+          theaterAddress: extractedAddress,
+          mapsUrl: t.mapsUrl || `https://maps.google.com/?q=${encodeURIComponent(extractedAddress)}`,
           bookingCode: t.bookingCode || 'RM92817K',
           bookingId: '503178/10000081674942',
           orderId: '10000081674942',

@@ -16,21 +16,26 @@ const formatCompactHeader = (ticketCount: number, dateTimeText: string) => {
   const count = Math.max(1, Number(ticketCount) || 1);
   const ticketLabel = `${count} ${count === 1 ? 'ticket' : 'tickets'}`;
 
-  // Try to match date (e.g. "04 Oct" or "12 Nov")
-  const dateMatch = dateTimeText.match(/(\d{1,2}\s+[A-Za-z]{3,4})/);
-  const dateStr = dateMatch ? dateMatch[1] : '04 Oct';
+  // Match date (e.g. "04 Oct" or "13 Nov")
+  const dateMatch = dateTimeText.match(/(\d{1,2}\s+[A-Za-z]{3,9})/);
+  const dateStr = dateMatch ? dateMatch[1].trim() : '04 Oct';
 
-  // Try to match start time (e.g. "from 12:00" or "06:30 PM")
+  // Match start time with optional explicit AM/PM (e.g. "from 12:00", "from 06:30 PM", "06:30 PM - 10:05 PM")
   const timeMatch =
-    dateTimeText.match(/from\s*(\d{1,2}:\d{2})/i) ||
-    dateTimeText.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+    dateTimeText.match(/from\s*(\d{1,2}:\d{2}(?:\s*(?:AM|PM))?)/i) ||
+    dateTimeText.match(/(\d{1,2}:\d{2}(?:\s*(?:AM|PM))?)/i);
 
   let timeStr = '12:00 PM';
   if (timeMatch) {
-    timeStr = timeMatch[1].trim();
-    if (!/AM|PM/i.test(timeStr)) {
-      const ampm = dateTimeText.match(/(AM|PM)/i);
-      timeStr = `${timeStr} ${ampm ? ampm[1].toUpperCase() : 'PM'}`;
+    const rawTime = timeMatch[1].trim();
+    const explicitAmPm = rawTime.match(/(\d{1,2}:\d{2})\s*(AM|PM)/i);
+    if (explicitAmPm) {
+      timeStr = `${explicitAmPm[1]} ${explicitAmPm[2].toUpperCase()}`;
+    } else {
+      // Look for AM/PM indicator later in string
+      const ampmMatch = dateTimeText.match(/\b(AM|PM)\b/i);
+      const suffix = ampmMatch ? ampmMatch[1].toUpperCase() : 'PM';
+      timeStr = `${rawTime} ${suffix}`;
     }
   }
 

@@ -5,9 +5,9 @@ import { ALTERNATIVE_TICKETS, RAMAYANA_TICKET } from '../data/sampleTickets';
 import { parseTicketScreenshot } from '../utils/ticketImageParser';
 
 // Normalize any pasted/typed alternate Unicode lowercase 'a' variants into standard 'a'
-// so Outfit renders every 'a' in uniform single-story geometry matching the rest of the text
+// so Outfit renders every 'a' in uniform single-story geometry while leaving digits (like 6, 2) and uppercase 'A' untouched
 const normalizeLetterA = (val: string) =>
-  val.replace(/[\u0251\u1D44E\u1D622\u1D482\u1D656\u1D4B6\u1D4EA\u1D5BA\u1D5EE]/gu, 'a');
+  val.replace(/[\u{0251}\u{1D44E}\u{1D622}\u{1D482}\u{1D656}\u{1D4B6}\u{1D4EA}\u{1D5BA}\u{1D5EE}]/gu, 'a');
 
 const isImageFile = (file: File) =>
   file.type.startsWith('image/') ||

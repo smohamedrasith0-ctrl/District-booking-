@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Sliders, Check, UploadCloud, Sparkles, Image as ImageIcon, Loader2, FileCheck } from 'lucide-react';
+import { X, Sliders, Check, UploadCloud, Sparkles, Image as ImageIcon, FolderOpen, Loader2, FileCheck } from 'lucide-react';
 import { TicketData } from '../types';
 import { ALTERNATIVE_TICKETS, RAMAYANA_TICKET } from '../data/sampleTickets';
 import { parseTicketScreenshot } from '../utils/ticketImageParser';
+
+// Normalize any pasted/typed alternate Unicode lowercase 'a' variants into standard 'a'
+// so Outfit renders every 'a' in uniform single-story geometry matching the rest of the text
+const normalizeLetterA = (val: string) =>
+  val.replace(/[\u0251\u1D44E\u1D622\u1D482\u1D656\u1D4B6\u1D4EA\u1D5BA\u1D5EE]/gu, 'a');
+
+const isImageFile = (file: File) =>
+  file.type.startsWith('image/') ||
+  /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name);
 
 interface CustomizerModalProps {
   isOpen: boolean;
@@ -20,7 +29,8 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
   onToast,
 }) => {
   const [formData, setFormData] = useState<TicketData>({ ...currentTicket });
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
   const [uploadedName, setUploadedName] = useState<string | null>(null);
@@ -38,6 +48,10 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
   if (!isOpen) return null;
 
   const processImageFile = async (file: File) => {
+    if (!isImageFile(file)) {
+      onToast('Please choose an image screenshot file (JPG, PNG, WEBP).');
+      return;
+    }
     setIsScanning(true);
     setAutoFillSuccess(null);
     try {
@@ -61,6 +75,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (file) {
       processImageFile(file);
     }
@@ -93,8 +108,10 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && isImageFile(file)) {
       processImageFile(file);
+    } else if (file) {
+      onToast('Please drop an image file (JPG, PNG, WEBP).');
     }
   };
 
@@ -140,6 +157,14 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
     }
     const finalTicket: TicketData = {
       ...formData,
+      movieTitle: normalizeLetterA(formData.movieTitle),
+      language: normalizeLetterA(formData.language),
+      format: normalizeLetterA(formData.format),
+      dateTimeText: normalizeLetterA(formData.dateTimeText),
+      screenName: normalizeLetterA(formData.screenName),
+      seatInfo: normalizeLetterA(formData.seatInfo),
+      theaterName: normalizeLetterA(formData.theaterName),
+      theaterAddress: normalizeLetterA(formData.theaterAddress),
       ticketCount: count,
       billBreakdown: updatedBreakdown,
     };
@@ -187,10 +212,19 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
             Upload your District ticket screenshot to automatically extract and populate all movie, showtime, seat, and bill details below.
           </p>
 
+          {/* Gallery input (image/* triggers Photo Picker / Gallery directly on mobile) */}
           <input
-            ref={fileInputRef}
+            ref={galleryInputRef}
             type="file"
             accept="image/*"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+
+          {/* Unrestricted folder/files input (omitting accept lets Android/mobile browse Folders & Files) */}
+          <input
+            ref={folderInputRef}
+            type="file"
             onChange={handleFileInputChange}
             className="hidden"
           />
@@ -200,7 +234,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => folderInputRef.current?.click()}
             className={`border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all ${
               isDragging
                 ? 'border-purple-400 bg-purple-600/20 scale-[0.99]'
@@ -225,19 +259,9 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                     <span className="truncate">Auto-filled: {formData.movieTitle}</span>
                   </div>
                   <p className="text-[10px] text-[#8e95a2] truncate mt-0.5">
-                    {uploadedName || 'Uploaded screenshot'} • Tap to change image
+                    {uploadedName || 'Uploaded screenshot'} • Tap below to switch
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current?.click();
-                  }}
-                  className="px-2.5 py-1 text-[11px] bg-white/10 hover:bg-white/20 rounded-lg text-white font-medium shrink-0 transition"
-                >
-                  Change
-                </button>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-1.5 gap-1.5">
@@ -245,11 +269,31 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                   <ImageIcon className="w-4 h-4" />
                 </div>
                 <div className="text-xs font-medium text-white/90">
-                  <span className="text-purple-400 font-semibold underline underline-offset-2">Click to upload image</span> or drag and drop
+                  <span className="text-purple-400 font-semibold underline underline-offset-2">Choose from Folder or Gallery</span> or drag & drop
                 </div>
-                <span className="text-[10px] text-white/50">Supports District screenshot JPG, PNG</span>
+                <span className="text-[10px] text-white/50">Supports District screenshot JPG, PNG, WEBP</span>
               </div>
             )}
+          </div>
+
+          {/* Dual Picker Buttons: Direct Gallery & Full Folder Browser */}
+          <div className="grid grid-cols-2 gap-2 mt-2.5">
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-[0.98]"
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-purple-300" />
+              <span>Gallery / Photos</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => folderInputRef.current?.click()}
+              className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-[0.98]"
+            >
+              <FolderOpen className="w-3.5 h-3.5 text-purple-300" />
+              <span>Files / Folder</span>
+            </button>
           </div>
 
           {/* Quick One-Click Button for User's Uploaded Ramayana Screenshot */}

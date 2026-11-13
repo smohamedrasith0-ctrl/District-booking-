@@ -197,7 +197,7 @@ export const ExpandingTicketCard: React.FC<ExpandingTicketCardProps> = ({
         <div className="mt-7 pt-2 flex flex-col items-center gap-1">
           <button
             onClick={() => copyToClipboard(ticket.bookingCode, 'Booking code')}
-            className="text-[12.5px] text-[#8e95a2] hover:text-white transition flex items-center gap-1.5 group font-mono"
+            className="text-[12.5px] text-[#8e95a2] hover:text-white transition flex items-center gap-1.5 group font-sans"
           >
             <span>Booking code: <strong className="text-[#a1a8b5] group-hover:text-white font-sans font-medium">{ticket.bookingCode}</strong></span>
             {copiedField === 'Booking code' ? (
@@ -209,7 +209,7 @@ export const ExpandingTicketCard: React.FC<ExpandingTicketCardProps> = ({
 
           <button
             onClick={() => copyToClipboard(ticket.bookingId, 'Booking ID')}
-            className="text-[12.5px] text-[#8e95a2] hover:text-white transition flex items-center gap-1.5 group font-mono"
+            className="text-[12.5px] text-[#8e95a2] hover:text-white transition flex items-center gap-1.5 group font-sans"
           >
             <span>Booking ID: <span className="text-[#a1a8b5] group-hover:text-white font-sans">{ticket.bookingId}</span></span>
             {copiedField === 'Booking ID' ? (
